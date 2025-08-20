@@ -169,7 +169,7 @@ public class WebviewOverlayPlugin extends Plugin {
                         }
 
                         if (loadUrlCall != null) {
-                            loadUrlCall.success();
+                            loadUrlCall.resolve();
                             loadUrlCall = null;
                         }
                         notifyListeners("pageLoaded", new JSObject());
@@ -193,7 +193,7 @@ public class WebviewOverlayPlugin extends Plugin {
                 String urlString = call.getString("url", "");
 
                 if (urlString.isEmpty()) {
-                    call.error("Must provide a URL to open");
+                    call.reject("Must provide a URL to open");
                     return;
                 }
 
@@ -279,7 +279,7 @@ public class WebviewOverlayPlugin extends Plugin {
                 if (webView != null) {
                     webView.setVisibility(View.VISIBLE);
                 }
-                call.success();
+                call.resolve();
             }
         });
     }
@@ -293,7 +293,7 @@ public class WebviewOverlayPlugin extends Plugin {
                 if (webView != null) {
                     webView.setVisibility(View.INVISIBLE);
                 }
-                call.success();
+                call.resolve();
             }
         });
     }
@@ -328,7 +328,7 @@ public class WebviewOverlayPlugin extends Plugin {
                 if (hidden) {
                     notifyListeners("updateSnapshot", new JSObject());
                 }
-                call.success();
+                call.resolve();
             }
         });
     }
@@ -365,7 +365,7 @@ public class WebviewOverlayPlugin extends Plugin {
     public void evaluateJavaScript(final PluginCall call) {
         final String javascript = call.getString("javascript", "");
         if (javascript.isEmpty()) {
-            call.error("Must provide javascript string");
+            call.reject("Must provide javascript string");
             return;
         }
 
@@ -414,7 +414,7 @@ public class WebviewOverlayPlugin extends Plugin {
                     }
                 }
                 if (call != null) {
-                    call.success();
+                    call.resolve();
                 }
             }
         });
@@ -428,7 +428,7 @@ public class WebviewOverlayPlugin extends Plugin {
                 if (webView != null) {
                     webView.goBack();
                 }
-                call.success();
+                call.resolve();
             }
         });
     }
@@ -441,7 +441,7 @@ public class WebviewOverlayPlugin extends Plugin {
                 if (webView != null) {
                     webView.goForward();
                 }
-                call.success();
+                call.resolve();
             }
         });
     }
@@ -454,7 +454,7 @@ public class WebviewOverlayPlugin extends Plugin {
                 if (webView != null) {
                     webView.reload();
                 }
-                call.success();
+                call.resolve();
             }
         });
     }
@@ -486,7 +486,7 @@ public class WebviewOverlayPlugin extends Plugin {
                     }
                     targetUrl = null;
                 }
-                call.success();
+                call.resolve();
             }
         });
     }
