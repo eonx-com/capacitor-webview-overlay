@@ -5,8 +5,9 @@ export default {
             file: 'dist/plugin.js',
             format: 'iife',
             name: 'capacitorWebviewOverlay',
-            globals: {
+    globals: {
                 '@capacitor/core': 'capacitorExports',
+                'resize-observer-polyfill': 'ResizeObserver',
             },
             sourcemap: true,
             inlineDynamicImports: true,
@@ -18,5 +19,5 @@ export default {
             inlineDynamicImports: true,
         },
     ],
-    external: ['@capacitor/core'],
+    external: ['@capacitor/core', 'resize-observer-polyfill'],
 };
