@@ -30,6 +30,7 @@ class WebviewOverlayClass {
     pageLoadedEvent: PluginListenerHandle;
     progressEvent: PluginListenerHandle;
     navigationHandlerEvent: PluginListenerHandle;
+    messageEvent: PluginListenerHandle;
     resizeObserver: ResizeObserver;
 
     open(options: WebviewOverlayOpenOptions): Promise<void> {
@@ -86,6 +87,9 @@ class WebviewOverlayClass {
         }
         if (this.navigationHandlerEvent) {
             this.navigationHandlerEvent.remove();
+        }
+        if (this.messageEvent) {
+            this.messageEvent.remove();
         }
         return WebviewOverlayPlugin.close();
     }
@@ -154,6 +158,10 @@ class WebviewOverlayClass {
             }
             listenerFunc({ ...event, complete });
         });
+    }
+
+    onMessage(listenerFunc: (event: { data: string }) => void) {
+        this.messageEvent = WebviewOverlayPlugin.addListener('message', listenerFunc);
     }
 
     toggleFullscreen() {

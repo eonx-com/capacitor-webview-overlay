@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
 import android.webkit.MimeTypeMap;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -59,6 +60,7 @@ class MyHTTPD extends NanoHTTPD {
 
 @CapacitorPlugin(name = "WebviewOverlayPlugin")
 public class WebviewOverlayPlugin extends Plugin {
+    private static final String MESSAGE_INTERFACE_NAME = "capWebviewOverlay";
     private WebView webView;
     private boolean hidden = false;
     private boolean fullscreen = false;
@@ -76,6 +78,15 @@ public class WebviewOverlayPlugin extends Plugin {
     @Override
     public void load() {
         super.load();
+    }
+
+    private class WebviewOverlayJavascriptBridge {
+        @JavascriptInterface
+        public void postMessage(String data) {
+            JSObject messageValue = new JSObject();
+            messageValue.put("data", data);
+            notifyListeners("message", messageValue);
+        }
     }
 
     private float getPixels(int value) {
@@ -99,6 +110,7 @@ public class WebviewOverlayPlugin extends Plugin {
                 settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                 settings.setDomStorageEnabled(true);
                 settings.setSupportMultipleWindows(true);
+                webView.addJavascriptInterface(new WebviewOverlayJavascriptBridge(), MESSAGE_INTERFACE_NAME);
 
                 // Temp fix until this setting is on by default
                 bridge.getWebView().getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
