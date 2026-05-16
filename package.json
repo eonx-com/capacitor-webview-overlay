@@ -1,6 +1,6 @@
 {
   "name": "@eonx-com/capacitor-webview-overlay",
-  "version": "6.0.2",
+  "version": "6.0.3-rc1",
   "description": "Webview Overlay",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
