@@ -2,6 +2,18 @@ import Foundation
 import Capacitor
 import GCDWebServer
 
+final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
+    weak var delegate: WKScriptMessageHandler?
+
+    init(delegate: WKScriptMessageHandler) {
+        self.delegate = delegate
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        delegate?.userContentController(userContentController, didReceive: message)
+    }
+}
+
 @available(iOS 11.0, *)
 class WebviewOverlay: UIViewController, WKUIDelegate, WKNavigationDelegate {
 
@@ -181,7 +193,9 @@ class WebviewOverlay: UIViewController, WKUIDelegate, WKNavigationDelegate {
 
 @available(iOS 11.0, *)
 @objc(WebviewOverlayPlugin)
-public class WebviewOverlayPlugin: CAPPlugin {
+public class WebviewOverlayPlugin: CAPPlugin, WKScriptMessageHandler {
+
+    static let messageHandlerName = "capWebviewOverlay"
 
     var width: CGFloat!
     var height: CGFloat!
@@ -199,6 +213,26 @@ public class WebviewOverlayPlugin: CAPPlugin {
      */
     override public func load() {}
 
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.name == Self.messageHandlerName else {
+            return
+        }
+
+        let data: String
+
+        if let body = message.body as? String {
+            data = body
+        } else if JSONSerialization.isValidJSONObject(message.body),
+                  let bodyData = try? JSONSerialization.data(withJSONObject: message.body),
+                  let bodyString = String(data: bodyData, encoding: .utf8) {
+            data = bodyString
+        } else {
+            data = String(describing: message.body)
+        }
+
+        notifyListeners("message", data: ["data": data])
+    }
+
     @objc func open(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             let webConfiguration = WKWebViewConfiguration()
@@ -207,6 +241,12 @@ public class WebviewOverlayPlugin: CAPPlugin {
             webConfiguration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
 
             // Content controller
+            let contentController = WKUserContentController()
+            contentController.add(
+                WeakScriptMessageHandler(delegate: self),
+                name: Self.messageHandlerName
+            )
+
             let javascript = call.getString("javascript") ?? ""
             if (javascript != "") {
                 var injectionTime: WKUserScriptInjectionTime!
@@ -226,6 +266,7 @@ public class WebviewOverlayPlugin: CAPPlugin {
                 contentController.addUserScript(script)
                 webConfiguration.userContentController = contentController
             }
+            webConfiguration.userContentController = contentController
 
             self.webviewOverlay = WebviewOverlay(self, configuration: webConfiguration)
 
@@ -258,6 +299,7 @@ public class WebviewOverlayPlugin: CAPPlugin {
     @objc func close(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             if (self.webviewOverlay != nil) {
+                self.webviewOverlay.configuration.userContentController.removeScriptMessageHandler(forName: Self.messageHandlerName)
                 self.webviewOverlay.view.removeFromSuperview()
                 self.webviewOverlay.removeFromParent()
                 self.webviewOverlay.clearWebServer()
