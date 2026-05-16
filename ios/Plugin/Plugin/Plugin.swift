@@ -2,18 +2,6 @@ import Foundation
 import Capacitor
 import GCDWebServer
 
-final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
-    weak var delegate: WKScriptMessageHandler?
-
-    init(delegate: WKScriptMessageHandler) {
-        self.delegate = delegate
-    }
-
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        delegate?.userContentController(userContentController, didReceive: message)
-    }
-}
-
 @available(iOS 11.0, *)
 class WebviewOverlay: UIViewController, WKUIDelegate, WKNavigationDelegate {
 
@@ -112,6 +100,7 @@ class WebviewOverlay: UIViewController, WKUIDelegate, WKNavigationDelegate {
             "}" +
         "addStyleString('html, body {-webkit-tap-highlight-color: transparent;}');"
         webView.evaluateJavaScript(script)
+
     }
 
     public func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
@@ -242,10 +231,7 @@ public class WebviewOverlayPlugin: CAPPlugin, WKScriptMessageHandler {
 
             // Content controller
             let contentController = WKUserContentController()
-            contentController.add(
-                WeakScriptMessageHandler(delegate: self),
-                name: Self.messageHandlerName
-            )
+            contentController.add(self, name: Self.messageHandlerName)
 
             let javascript = call.getString("javascript") ?? ""
             if (javascript != "") {
@@ -261,10 +247,8 @@ public class WebviewOverlayPlugin: CAPPlugin, WKScriptMessageHandler {
                     injectionTime = .atDocumentStart
                     break;
                 }
-                let contentController = WKUserContentController()
                 let script = WKUserScript(source: String(javascript), injectionTime: injectionTime, forMainFrameOnly: true)
                 contentController.addUserScript(script)
-                webConfiguration.userContentController = contentController
             }
             webConfiguration.userContentController = contentController
 
