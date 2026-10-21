@@ -161,7 +161,7 @@ public class WebviewOverlayPlugin extends Plugin {
                         super.onPageStarted(view, url, favicon);
 
                         if (!javascript.isEmpty() && injectionTime == 0) {
-                            webView.evaluateJavascript(javascript, null);
+                            view.evaluateJavascript(javascript, null);
                         }
                     }
 
@@ -170,7 +170,7 @@ public class WebviewOverlayPlugin extends Plugin {
                         super.onPageFinished(view, url);
                         if (webView != null) {
                             if (!javascript.isEmpty() && injectionTime == 1) {
-                                webView.evaluateJavascript(javascript, null);
+                                view.evaluateJavascript(javascript, null);
                             }
                             if (!hidden) {
                                 webView.setVisibility(View.VISIBLE);
@@ -273,6 +273,8 @@ public class WebviewOverlayPlugin extends Plugin {
                 int count = rootGroup.getChildCount();
                 if (count > 1) {
                     rootGroup.removeView(webView);
+                    webView.stopLoading();
+                    webView.destroy();
                     webView = null;
                 }
                 hidden = false;
